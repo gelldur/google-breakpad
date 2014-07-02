@@ -44,13 +44,23 @@
 #include <sys/types.h>
 #include <sys/user.h>
 
+#if __cplusplus > 199711L
+#include <type_traits>
+#endif
+
 #include "common/memory.h"
 #include "google_breakpad/common/minidump_format.h"
 
 namespace google_breakpad {
 
+#if __cplusplus > 199711L
+typedef std::remove_reference<
+decltype(((struct user*) 0)->u_debugreg[0])
+>::type debugreg_t;
+#else
 #if defined(__i386) || defined(__x86_64)
 typedef typeof(((struct user*) 0)->u_debugreg[0]) debugreg_t;
+#endif
 #endif
 
 // Typedef for our parsing of the auxv variables in /proc/pid/auxv.
@@ -60,7 +70,13 @@ typedef Elf32_auxv_t elf_aux_entry;
 typedef Elf64_auxv_t elf_aux_entry;
 #endif
 
+#if __cplusplus > 199711L
+typedef std::remove_reference<
+decltype(((elf_aux_entry*) 0)->a_un.a_val)
+>::type elf_aux_val_t;
+#else
 typedef typeof(((elf_aux_entry*) 0)->a_un.a_val) elf_aux_val_t;
+#endif
 
 // When we find the VDSO mapping in the process's address space, this
 // is the name we use for it when writing it to the minidump.
